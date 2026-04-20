@@ -31,7 +31,7 @@ window.showGuestPage = function(page, btn) {
   else if (page === 'rank') renderGuestRankPage(_guestRankPeriod);
   else if (page === 'samara') { renderGuestView(_guestSamaraPeriod||'today'); }
   // contact page — habarlar bosh sahifada chiqadi
-  else if (page === 'home') renderGuestView(_guestPeriod);
+  else if (page === 'home') { renderGuestView(_guestPeriod); renderGuestHomePosts(); }
 };
 window.setGuestRankPeriod = function(period, btn) {
   _guestRankPeriod = period;

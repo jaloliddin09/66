@@ -278,24 +278,30 @@ window.deletePost = function(pid) {
   if (!confirm('Postni o\'chirmoqchimisiz?')) return;
   delete DATA.posts[pid];
   delete DATA.notifications[pid];
+  // UI ni darhol yangilaymiz
+  renderNotifsAdmin();
+  renderGuestPosts();
+  renderNotifsParent();
+  renderGuestHomePosts();
+  toast('🗑️ O\'chirildi');
+  // Firebase ga async yuboramiz
   Promise.all([
     fbRemove('posts/' + pid),
     fbRemove('notifications/' + pid)
   ]).catch(function(e){ console.warn('delete err',e); });
-  renderNotifsAdmin();
-  renderGuestPosts();
-  renderNotifsParent();
-  toast('🗑️ O\'chirildi');
 };
 
 window.deleteNotif = function(nid) {
   delete DATA.notifications[nid];
   delete DATA.posts[nid];
-  fbRemove('notifications/' + nid).catch(function(){});
-  fbRemove('posts/' + nid).catch(function(){});
   renderNotifsAdmin();
   renderGuestPosts();
+  renderGuestHomePosts();
   toast('🗑️ O\'chirildi');
+  Promise.all([
+    fbRemove('notifications/' + nid),
+    fbRemove('posts/' + nid)
+  ]).catch(function(){});
 };
 
 function buildPostCard(p, pid, showDel, showAud) {

@@ -138,7 +138,7 @@ window.addApp = async function() {
 window.deleteApp = async function(id) {
   if (!confirm('Dasturni o\'chirmoqchimisiz?')) return;
   delete DATA.apps[id];
-  try { await fbRemove(`apps/${id}`); } catch(e) { saveLocal(); }
-  renderAdminApps();
+  renderAdminApps(); // darhol UI yangilansin
   toast('🗑️ O\'chirildi');
+  try { await fbRemove(`apps/${id}`); } catch(e) { saveLocal(); }
 };

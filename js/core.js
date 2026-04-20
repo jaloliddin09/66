@@ -138,10 +138,11 @@ function setupFirebaseListener() {
       if (CU) refreshCurrentPage();
       // Letter status check
       if (window._onDataRefresh) window._onDataRefresh();
-      // Refresh guest if open
-      if (document.getElementById('guest-app').style.display !== 'none') {
+      // Guest app - doim refresh (ko'rinmasa ham data tayyor tursin)
+      if (typeof renderGuestHomePosts === 'function') renderGuestHomePosts();
+      if (document.getElementById('guest-app') &&
+          document.getElementById('guest-app').style.display !== 'none') {
         renderGuestView(_guestPeriod || 'today');
-    renderGuestHomePosts();
       }
     }
   }, err => { console.warn('Firebase listen error:', err); });
