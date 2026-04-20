@@ -3,7 +3,7 @@
 // ║  YANGILASH: CACHE_NAME raqamini o'zgartiring            ║
 // ║  Masalan: 'jm-v3.8' → 'jm-v3.8'                        ║
 // ╚══════════════════════════════════════════════════════════╝
-const CACHE_NAME = 'jm-v3.8';
+const CACHE_NAME = 'jm-v202604200807';
 
 // Asosiy fayllar — har doim keshda bo'ladi
 const CORE_FILES = [
@@ -16,6 +16,7 @@ const CORE_FILES = [
   './css/samara.css',
   './css/posts.css',
   // JS fayllar
+  './js/firebase-init.js',
   './js/core.js',
   './js/settings.js',
   './js/auth.js',
