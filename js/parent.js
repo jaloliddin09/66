@@ -261,7 +261,7 @@ window.addPost = function() {
     if (window._audParent) {
       var notifData = { text: (title ? title + ': ' : '') + text, icon: icon, createdAt: nowTs() };
       DATA.notifications[pid] = notifData;
-      fbSet('notifications/' + pid, notifData).catch(function(){});
+      fbSet('notifications/' + pid, notifData).catch(function(e){ console.warn('notif err',e); });
     }
     fbSet('posts/' + pid, postData).catch(function(){ saveLocal(); });
     if (titleEl) titleEl.value = '';
@@ -278,8 +278,10 @@ window.deletePost = function(pid) {
   if (!confirm('Postni o\'chirmoqchimisiz?')) return;
   delete DATA.posts[pid];
   delete DATA.notifications[pid];
-  fbRemove('posts/' + pid).catch(function(){});
-  fbRemove('notifications/' + pid).catch(function(){});
+  Promise.all([
+    fbRemove('posts/' + pid),
+    fbRemove('notifications/' + pid)
+  ]).catch(function(e){ console.warn('delete err',e); });
   renderNotifsAdmin();
   renderGuestPosts();
   renderNotifsParent();

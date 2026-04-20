@@ -72,19 +72,25 @@ function destroyChart(key) {
 }
 
 // ============================================================
-// FIREBASE OPERATIONS
+// FIREBASE OPERATIONS — fbReady ni kutadi (hech qachon crash bo'lmaydi)
 // ============================================================
+function _waitFb() {
+  if (window._fbReady && window._fb) return Promise.resolve(window._fb);
+  return new Promise(function(resolve) {
+    window.addEventListener('fbReady', function() { resolve(window._fb); }, { once: true });
+  });
+}
 function fbSet(path, data) {
-  return window._fb.set(window._fb.ref(window._fb.db, path), data);
+  return _waitFb().then(function(fb) { return fb.set(fb.ref(fb.db, path), data); });
 }
 function fbUpdate(path, data) {
-  return window._fb.update(window._fb.ref(window._fb.db, path), data);
+  return _waitFb().then(function(fb) { return fb.update(fb.ref(fb.db, path), data); });
 }
 function fbRemove(path) {
-  return window._fb.remove(window._fb.ref(window._fb.db, path));
+  return _waitFb().then(function(fb) { return fb.remove(fb.ref(fb.db, path)); });
 }
 function fbGet(path) {
-  return window._fb.get(window._fb.ref(window._fb.db, path));
+  return _waitFb().then(function(fb) { return fb.get(fb.ref(fb.db, path)); });
 }
 
 // Local cache save/load
@@ -116,7 +122,7 @@ function loadLocal() {
 
 // Setup Firebase real-time listener
 function setupFirebaseListener() {
-  const { onValue, ref, db } = window._fb;
+  const { onValue, ref, db } = window._fb;  // bu chaqirilganda _fb tayyor
   onValue(ref(db, '/'), snap => {
     if (snap.exists()) {
       const d = snap.val();
