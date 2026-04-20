@@ -629,9 +629,10 @@ window.toggleDayCount = async function(gid, date, counted) {
         removes.push(fbRemove(`groups/${gid}/students/${sid}/records/${date}`));
       }
     }
-    try { await Promise.all(removes); } catch(e) { saveLocal(); }
+    // UI ni darhol yangilaymiz (Firebase kutmasdan) - onValue qayta tiklamamaslik uchun
     buildGradeForm();
     toast('🗑️ Kun o\'chirildi');
+    try { await Promise.all(removes); } catch(e) { saveLocal(); }
   } else {
     // Tiklash (agar kerak bo'lsa)
     const updates = {};

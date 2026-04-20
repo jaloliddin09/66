@@ -62,6 +62,8 @@ function _showUpdateBanner(version) {
   document.body.appendChild(bar);
 }
 window._doReload = function() {
+  // localStorage eski ma'lumotlarni tozalaymiz - yangi deploy dan fresh data kelsin
+  try { localStorage.removeItem('jm_data'); } catch(e) {}
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ type: 'FORCE_UPDATE' });
   }
@@ -210,15 +212,15 @@ window._showIosGuide = _showIosGuide;
 // ADMIN: kesh tozalash (tejamkor — barcha fayllarni yuklamaydi)
 // ═══════════════════════════════════════════════════════════
 window.forceCacheClear = async function() {
-  if (!confirm('Keshni tozalash. Sahifa qayta yuklanadi. Davom etasizmi?')) return;
+  if (!confirm('Kesh va mahalliy ma\'lumotlar tozalanadi. Davom etasizmi?')) return;
   toast('🔄 Tozalanmoqda...');
+  try { localStorage.removeItem('jm_data'); } catch(e) {}
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
   if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
     navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
-  } else {
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
   }
   toast('✅ Tozalandi! Sahifa yangilanmoqda...');
   setTimeout(() => window.location.reload(true), 1500);
