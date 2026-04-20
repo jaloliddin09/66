@@ -596,21 +596,21 @@ function renderGradeHistory(gid, currentDate) {
   }
 
   document.getElementById('grade-history-card').style.display = 'block';
-  document.getElementById('grade-history').innerHTML = sortedDates.map(d => {
-    const isCounted = isDayCounted(gid, d, null);
+  document.getElementById('grade-history').innerHTML = sortedDates.filter(d => {
+    return isDayCounted(gid, d, null); // Bekor kunlarni ko'rsatmaymiz
+  }).map(d => {
+    const isCounted = true; // filter'dan o'tdi — doim true
     const avgArr = Object.entries(group.students||{}).map(([,s]) => s.records?.[d]?.percent).filter(v=>v!==undefined);
     const avg = avgArr.length ? Math.round(avgArr.reduce((a,b)=>a+b,0)/avgArr.length) : 0;
     const attCount = Object.values(group.students||{}).filter(s=>s.records?.[d]?.qatnashdi).length;
     return `
-    <div class="hist-row" ${!isCounted?'style="opacity:.45"':''}>
+    <div class="hist-row">
       <div style="flex:1">
         <div class="hist-date">${fmtDate(d)} ${d===today()?'(bugun)':''}</div>
-        <div class="hist-sub">O'rtacha: ${avg}% · Keldi: ${attCount}/${students.length} ${!isCounted?'<span class="cancelled-badge">BEKOR</span>':''}</div>
+        <div class="hist-sub">O'rtacha: ${avg}% · Keldi: ${attCount}/${students.length}</div>
       </div>
       <div class="hist-actions">
-        ${isCounted
-          ? `<button class="btn btn-xs btn-danger" onclick="toggleDayCount('${gid}','${d}',false)">Bekor</button>`
-          : `<button class="btn btn-xs btn-success" onclick="toggleDayCount('${gid}','${d}',true)">Tiklash</button>`}
+        <button class="btn btn-xs btn-danger" onclick="toggleDayCount('${gid}','${d}',false)">Bekor</button>
       </div>
     </div>`;
   }).join('');
@@ -619,18 +619,34 @@ function renderGradeHistory(gid, currentDate) {
 window.toggleDayCount = async function(gid, date, counted) {
   const group = DATA.groups[gid];
   if (!group) return;
-  const updates = {};
-  for (const [sid, s] of Object.entries(group.students||{})) {
-    if (s.records?.[date]) {
-      DATA.groups[gid].students[sid].records[date].isCounted = counted;
-      DATA.groups[gid].students[sid].records[date].manualOverride = true;
-      updates[`groups/${gid}/students/${sid}/records/${date}/isCounted`] = counted;
-      updates[`groups/${gid}/students/${sid}/records/${date}/manualOverride`] = true;
+  if (!counted) {
+    // Bekor = o'chirish (Firebase dan ham, localdan ham)
+    if (!confirm('Bu kunni butunlay o\'chirasizmi? Qayta tiklab bo\'lmaydi!')) return;
+    const removes = [];
+    for (const [sid, s] of Object.entries(group.students||{})) {
+      if (s.records?.[date]) {
+        delete DATA.groups[gid].students[sid].records[date];
+        removes.push(fbRemove(`groups/${gid}/students/${sid}/records/${date}`));
+      }
     }
+    try { await Promise.all(removes); } catch(e) { saveLocal(); }
+    buildGradeForm();
+    toast('🗑️ Kun o\'chirildi');
+  } else {
+    // Tiklash (agar kerak bo'lsa)
+    const updates = {};
+    for (const [sid, s] of Object.entries(group.students||{})) {
+      if (s.records?.[date]) {
+        DATA.groups[gid].students[sid].records[date].isCounted = true;
+        DATA.groups[gid].students[sid].records[date].manualOverride = true;
+        updates[`groups/${gid}/students/${sid}/records/${date}/isCounted`] = true;
+        updates[`groups/${gid}/students/${sid}/records/${date}/manualOverride`] = true;
+      }
+    }
+    try { await fbUpdate('/', updates); } catch(e) { saveLocal(); }
+    buildGradeForm();
+    toast('✅ Kun tiklandi');
   }
-  try { await fbUpdate('/', updates); } catch(e) { saveLocal(); }
-  buildGradeForm();
-  toast(counted ? '✅ Kun tiklandi' : '⛔ Kun bekor qilindi');
 };
 
 // ============================================================
